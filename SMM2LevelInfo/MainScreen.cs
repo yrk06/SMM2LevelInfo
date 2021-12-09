@@ -13,6 +13,7 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.IO;
+using System.Text.RegularExpressions;
 
 namespace SMM2LevelInfo
 {
@@ -22,6 +23,7 @@ namespace SMM2LevelInfo
         private CancellationTokenSource source;
         private Thread levelListenerThread;
         private static readonly HttpClient client = new HttpClient();
+        private string lastCode = "";
         public MainScreen()
         {
             InitializeComponent();
@@ -131,9 +133,21 @@ namespace SMM2LevelInfo
                 //If this has a level info, then grab the code
                 string level_code = lvlinfo.level.code;
                 level_code = level_code.Replace("-", "");
-                Debug.WriteLine($"Level code is: {level_code}\n");
 
+                if(level_code == lastCode)
+                {
+                    continue;
+                }
+                Debug.WriteLine($"Level code is: {level_code}\n");
+                if (!Regex.Match(level_code,
+                    "^([0-9]|[A-Z]){9}$",
+                    RegexOptions.IgnoreCase).Success)
+                {
+                    continue;
+                }
+                Debug.WriteLine($"Level code is: {level_code}\n");
                 client.GetStringAsync($"https://yrk06.com.br/api/levelinfo/{LIB_api_key.Text}/{level_code}");
+                lastCode = level_code;
 
             }
         }
